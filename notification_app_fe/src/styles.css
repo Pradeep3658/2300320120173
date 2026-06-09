@@ -190,6 +190,61 @@ textarea {
   gap: 14px;
 }
 
+.priority-list {
+  display: grid;
+  gap: 12px;
+}
+
+.priority-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.priority-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.priority-main {
+  display: grid;
+  gap: 8px;
+}
+
+.priority-meta,
+.row-top-meta,
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.priority-score {
+  color: rgba(236, 242, 255, 0.72);
+  font-size: 0.92rem;
+}
+
+.priority-type {
+  text-transform: capitalize;
+}
+
+.filter-card {
+  display: grid;
+  gap: 14px;
+}
+
+.filter-button {
+  min-width: 96px;
+}
+
+.filter-button.active {
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4) inset;
+}
+
 .notification-item,
 .notification-row {
   display: flex;

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiRequest } from '../api/client';
 import { logInfo } from '../utils/logger';
+import { getTopPriorityNotifications } from '../utils/priorityNotifications';
 
 function Dashboard() {
-  const [stats, setStats] = useState({ total: 0, unread: 0, latest: [] });
+  const [stats, setStats] = useState({ total: 0, unread: 0, latest: [], priority: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -17,11 +18,14 @@ function Dashboard() {
         const result = await apiRequest('/notifications');
         if (!isMounted) return;
         const notifications = result.data || [];
+        const priorityNotifications = getTopPriorityNotifications(notifications, 10);
+        void logInfo('priority-notifications', `Calculated top priority notifications (${priorityNotifications.length})`);
         const unread = notifications.filter((item) => !item.read).length;
         setStats({
           total: notifications.length,
           unread,
           latest: notifications.slice(0, 3),
+          priority: priorityNotifications,
         });
       } catch (error) {
         if (isMounted) setError(error.message);
@@ -72,6 +76,27 @@ function Dashboard() {
           <span>Logging Status</span>
           <strong>Connected</strong>
         </article>
+      </div>
+
+      <div className="card">
+        <div className="section-heading">
+          <h3>Top 10 Priority Notifications</h3>
+        </div>
+        <div className="priority-list">
+          {stats.priority.length === 0 ? <p className="muted-text">No priority notifications available yet.</p> : null}
+          {stats.priority.map((item) => (
+            <article className="priority-item" key={item.id}>
+              <div className="priority-main">
+                <h4>{item.title}</h4>
+                <div className="priority-meta">
+                  <span className="pill priority-type">{item.type}</span>
+                  <span className="priority-score">Score: {item.score.toFixed(3)}</span>
+                </div>
+              </div>
+              <span className={item.read ? 'pill success' : 'pill warning'}>{item.read ? 'Read' : 'Unread'}</span>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="card">

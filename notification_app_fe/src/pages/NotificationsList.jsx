@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { apiRequest } from '../api/client';
 import { logInfo } from '../utils/logger';
+import { calculatePriorityScore, getTopPriorityNotifications, getNotificationType } from '../utils/priorityNotifications';
 
 function NotificationsList() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filter, setFilter] = useState('all');
 
   async function loadNotifications() {
     try {
@@ -33,6 +35,21 @@ function NotificationsList() {
     }
   }
 
+  function handleFilterChange(nextFilter) {
+    setFilter(nextFilter);
+    void logInfo('notifications-list', `Filter changed to ${nextFilter}`);
+  }
+
+  const filteredNotifications = notifications.filter((item) => {
+    if (filter === 'all') {
+      return true;
+    }
+
+    return getNotificationType(item) === filter;
+  });
+
+  const visibleNotifications = getTopPriorityNotifications(filteredNotifications, filteredNotifications.length);
+
   return (
     <section className="page">
       <div className="section-heading">
@@ -45,18 +62,40 @@ function NotificationsList() {
         </button>
       </div>
 
+      <div className="card filter-card">
+        <div className="section-heading">
+          <h3>Filter Notifications</h3>
+        </div>
+        <div className="filter-group">
+          {['all', 'placement', 'result', 'event'].map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={filter === option ? 'button primary filter-button active' : 'button secondary filter-button'}
+              onClick={() => handleFilterChange(option)}
+            >
+              {option === 'all' ? 'All' : option.charAt(0).toUpperCase() + option.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {loading ? <div className="card muted">Loading notifications...</div> : null}
       {error ? <div className="card error">{error}</div> : null}
 
       <div className="stack">
-        {notifications.map((item) => (
+        {visibleNotifications.map((item) => (
           <article className="card notification-row" key={item.id}>
             <div>
               <div className="row-top">
                 <h3>{item.title}</h3>
-                <span className={item.read ? 'pill success' : 'pill warning'}>{item.read ? 'Read' : 'Unread'}</span>
+                <div className="row-top-meta">
+                  <span className="pill priority-type">{getNotificationType(item)}</span>
+                  <span className={item.read ? 'pill success' : 'pill warning'}>{item.read ? 'Read' : 'Unread'}</span>
+                </div>
               </div>
               <p>{item.message}</p>
+              <small>Priority score: {calculatePriorityScore(item).toFixed(3)}</small>
               <small>Created at {new Date(item.createdAt).toLocaleString()}</small>
             </div>
             {!item.read ? (
